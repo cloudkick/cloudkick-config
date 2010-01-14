@@ -83,10 +83,13 @@ int main(int argc, char *const *argv)
 
     if (a->count > 1) {
         int i = 1;
+        int t = 0;
         //ckc_error_out("multple accounts");
-        for (l = a->head; l != NULL; l = l->next) {
+        fprintf(stdout, "Please select which Cloudkick Account to use:\n");
+        for (l = a->head; l != NULL; l = l->next, i++) {
             fprintf(stdout, "  [%d]  %s\n", i, l->s);
         }
+        ckc_prompt_number(&t, 1, i-1);
         return 0;
     }
 

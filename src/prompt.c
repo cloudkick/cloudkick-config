@@ -42,9 +42,22 @@ int ckc_prompt_password(const char **password)
     return 0;
 }
 
-int ckc_prompt_number(int *num)
+int ckc_prompt_number(int *num, int min, int max)
 {
-    *num = 0;
+    char buf[256] = {0};
+    fprintf(stdout, "Select %d to %d: ", min, max);
+    fflush(stdout);
+    char *p = fgets(&buf[0], sizeof(buf), stdin);
+    if (p == NULL) {
+        return -1;
+    }
+    *num = atoi(p);
+    if (*num > max) {
+        return ckc_prompt_number(num, min, max);
+    }
+    if (*num < min) {
+        return ckc_prompt_number(num, min, max);
+    }
     return 0;
 }
 
