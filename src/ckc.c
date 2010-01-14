@@ -47,6 +47,8 @@ int main(int argc, char *const *argv)
         }
     }
 
+    curl_global_cleanup();
+
     return 0;
 }
 
