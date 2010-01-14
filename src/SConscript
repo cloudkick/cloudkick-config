@@ -1,0 +1,13 @@
+Import("env")
+
+lenv = env.Clone()
+
+sources = Split("""
+  ckc.c
+""")
+
+ckc = lenv.Program("cloudkick-config", source=sources)
+
+targets = [ckc]
+
+Return("targets")
