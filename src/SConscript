@@ -4,6 +4,7 @@ lenv = env.Clone()
 
 sources = Split("""
   ckc.c
+  transport.c
 """)
 
 ckc = lenv.Program("cloudkick-config", source=sources)
