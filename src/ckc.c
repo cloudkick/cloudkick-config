@@ -79,9 +79,15 @@ int main(int argc, char *const *argv)
     }
 
     account = a->head->s;
+    ckc_ll_t *l;
 
     if (a->count > 1) {
+        int i = 1;
         //ckc_error_out("multple accounts");
+        for (l = a->head; l != NULL; l = l->next) {
+            fprintf(stdout, "  [%d]  %s\n", i, l->s);
+        }
+        return 0;
     }
 
     ckc_transport_free(t);
@@ -90,7 +96,7 @@ int main(int argc, char *const *argv)
 
     ckc_transport_init(t);
 
-    ckc_ll_t *l;
+    l = NULL;
     t->username = username;
     t->password = password;
 
@@ -100,7 +106,10 @@ int main(int argc, char *const *argv)
         ckc_error_out("error getting api key");
     }
 
-    fprintf(stderr, "a: %s\nb: %s\n", l->s, l->next->s);
+    const char *secret = l->s;
+    const char *key = l->next->s;
+    fprintf(stderr, "key: %s\nsecret: %s\n", key, secret);
+#define CONF "/etc/cloudkick.conf"
     ckc_transport_free(t);
 
     return 0;
