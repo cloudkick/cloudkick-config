@@ -29,6 +29,7 @@ void ckc_error_out(const char *msg)
 
 int main(int argc, char *const *argv)
 {
+    int rv;
     ckc_transport_t *t;
     int c;
 
@@ -49,11 +50,32 @@ int main(int argc, char *const *argv)
     }
 
     curl_global_cleanup();
+    
     t = calloc(1, sizeof(ckc_transport_t));
     ckc_transport_init(t);
-    ckc_prompt_username(&t->username);
-    ckc_prompt_password(&t->password);
-    ckc_transport_list_accounts(t, NULL);
+
+    rv = ckc_prompt_username(&t->username);
+    if (rv < 0) {
+        ckc_error_out("error reading username");
+    }
+
+    rv = ckc_prompt_password(&t->password);
+    if (rv < 0) {
+        ckc_error_out("error reading password");
+    }
+
+    ckc_accounts_t *a;
+
+    rv = ckc_transport_list_accounts(t, &a);
+
+    if (rv < 0) {
+        ckc_error_out("error listing accounts");
+    }
+
+    if (a->count > 1) {
+        ckc_error_out("multple accounts");
+    }
+    
     ckc_transport_free(t);
     return 0;
 }

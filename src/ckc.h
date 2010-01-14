@@ -56,7 +56,7 @@ int ckc_prompt_number(int *num);
 
 int ckc_transport_init(ckc_transport_t *t);
 int ckc_transport_list_accounts(ckc_transport_t *t, ckc_accounts_t **accounts);
-int ckc_transport_get_consumer(ckc_transport_t *t, const char *account);
+int ckc_transport_get_consumer(ckc_transport_t *t, const char *account, ckc_ll_t **xl);
 void ckc_transport_free(ckc_transport_t *t);
 
 void ckc_accounts_free(ckc_accounts_t *accounts);

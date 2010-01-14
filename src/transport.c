@@ -92,8 +92,9 @@ static int ckc_transport_run(ckc_transport_t *t, ckc_buf_t *buf)
     return 0;
 }
 
-int ckc_transport_list_accounts(ckc_transport_t *t, ckc_accounts_t **ants)
+int ckc_transport_list_accounts(ckc_transport_t *t, ckc_accounts_t **acct)
 {
+    ckc_accounts_t *a;
     ckc_ll_t *l;
     ckc_buf_t buf = {0};
 
@@ -112,37 +113,45 @@ int ckc_transport_list_accounts(ckc_transport_t *t, ckc_accounts_t **ants)
     }
 
     l = split_by_lines(buf.data);
-    while (l != NULL) {
-        fprintf(stderr, "line: %s\n", l->s);
-        l = l->next;
+    if (l == NULL) {
+        return -1;
     }
+    
+    a = calloc(1, sizeof(ckc_accounts_t));
+    a->head = l;
+    for (l = a->head; l != NULL; l = l->next) {
+        a->count++;
+    }
+
+    *acct = a;
 
     return 0;
 }
 
-int ckc_transport_get_consumer(ckc_transport_t *t, const char *account)
+int ckc_transport_get_consumer(ckc_transport_t *t, const char *account, ckc_ll_t **xl)
 {
     ckc_ll_t *l;
     ckc_buf_t buf = {0};
     int rv = to_post_data(t, account);
-    
+
     if (rv < 0) {
         return rv;
     }
-    
+
     curl_easy_setopt(t->curl, CURLOPT_URL, "https://www.cloudkick.com/oauth/create_consumer/");
 
     rv = ckc_transport_run(t, &buf);
-    
+
     if (rv < 0) {
         return rv;
     }
 
     l = split_by_lines(buf.data);
-    while (l != NULL) {
-        fprintf(stderr, "line: %s\n", l->s);
-        l = l->next;
+    if (l == NULL) {
+        return -1;
     }
+
+    *xl = l;
 
     return 0;
 }
