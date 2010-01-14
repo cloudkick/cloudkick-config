@@ -98,7 +98,7 @@ if env.get('HAVE_DPKG'):
                   Copy(pjoin(debroot, 'DEBIAN', 'control'), deb_control[0]),
                   Copy(pjoin(debroot, 'DEBIAN', 'conffiles'), deb_conffiles[0]),
                   Mkdir(pjoin(debroot, "usr", "bin")),
-                  Copy(pjoin(debroot, "usr", "bin", 'ckc'), ckc[0][0]),
+                  Copy(pjoin(debroot, "usr", "bin", 'cloudkick-config'), ckc[0][0]),
                   fr +" dpkg-deb -b "+debroot+" $TARGET",
                   Delete(debroot),
                 ])
