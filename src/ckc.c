@@ -29,6 +29,9 @@ void ckc_error_out(const char *msg)
 
 int main(int argc, char *const *argv)
 {
+    const char *account = NULL;
+    const char *password = NULL;
+    const char *username = NULL;
     int rv;
     ckc_transport_t *t;
     int c;
@@ -52,18 +55,21 @@ int main(int argc, char *const *argv)
     curl_global_cleanup();
     
     t = calloc(1, sizeof(ckc_transport_t));
+
     ckc_transport_init(t);
 
-    rv = ckc_prompt_username(&t->username);
+    rv = ckc_prompt_username(&username);
     if (rv < 0) {
         ckc_error_out("error reading username");
     }
 
-    rv = ckc_prompt_password(&t->password);
+    rv = ckc_prompt_password(&password);
     if (rv < 0) {
         ckc_error_out("error reading password");
     }
 
+    t->username = username;
+    t->password = password;
     ckc_accounts_t *a;
 
     rv = ckc_transport_list_accounts(t, &a);
@@ -72,11 +78,31 @@ int main(int argc, char *const *argv)
         ckc_error_out("error listing accounts");
     }
 
+    account = a->head->s;
+
     if (a->count > 1) {
-        ckc_error_out("multple accounts");
+        //ckc_error_out("multple accounts");
     }
-    
+
     ckc_transport_free(t);
+
+    t = calloc(1, sizeof(ckc_transport_t));
+
+    ckc_transport_init(t);
+
+    ckc_ll_t *l;
+    t->username = username;
+    t->password = password;
+
+    rv = ckc_transport_get_consumer(t, account, &l);
+    
+    if (rv < 0) {
+        ckc_error_out("error getting api key");
+    }
+
+    fprintf(stderr, "a: %s\nb: %s\n", l->s, l->next->s);
+    ckc_transport_free(t);
+
     return 0;
 }
 
