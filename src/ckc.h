@@ -38,9 +38,16 @@ typedef struct ckc_transport_t {
     const char *password;
 } ckc_transport_t;
 
+typedef struct ckc_ll_t ckc_ll_t;
+
+struct ckc_ll_t {
+    const char *s;
+    ckc_ll_t *next;
+};
+
 typedef struct ckc_accounts_t {
     int count;
-    char *const *accounts;
+    ckc_ll_t *head;
 } ckc_accounts_t;
 
 int ckc_prompt_username(const char **username);

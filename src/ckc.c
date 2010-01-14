@@ -29,6 +29,7 @@ void ckc_error_out(const char *msg)
 
 int main(int argc, char *const *argv)
 {
+    ckc_transport_t *t;
     int c;
 
     curl_global_init(CURL_GLOBAL_ALL);
@@ -48,7 +49,12 @@ int main(int argc, char *const *argv)
     }
 
     curl_global_cleanup();
-
+    t = calloc(1, sizeof(ckc_transport_t));
+    ckc_transport_init(t);
+    ckc_prompt_username(&t->username);
+    ckc_prompt_password(&t->password);
+    ckc_transport_list_accounts(t, NULL);
+    ckc_transport_free(t);
     return 0;
 }
 

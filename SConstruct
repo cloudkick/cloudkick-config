@@ -62,7 +62,7 @@ conf.env.AppendUnique(CPPPATH = [pjoin(cprefix[1], "include")])
 # TOOD: this is less than optimal, since curl-config polutes this quite badly :(
 d = conf.env.ParseFlags(clibs[1])
 conf.env.MergeFlags(d)
-conf.env.AppendUnique(CPPFLAGS = ["-Wall"])
+conf.env.AppendUnique(CPPFLAGS = ["-Wall", "-g", "-O0"])
 # this is needed on solaris because of its dumb library path issues
 conf.env.AppendUnique(RPATH = conf.env.get('LIBPATH'))
 env = conf.Finish()

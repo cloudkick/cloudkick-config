@@ -11,39 +11,58 @@ static size_t write_cb(void *ptr, size_t size, size_t nmemb, void *baton)
 {
     ckc_buf_t *buf = (ckc_buf_t*)baton;
     size_t s = size * nmemb;
-    buf->data = realloc(buf->data, buf->len + s);
+    buf->data = realloc(buf->data, buf->len + s +1);
     memcpy((void*)&buf->data[buf->len], ptr, s);
     buf->len += s;
+    buf->data[buf->len] = '\0';
     return s;
 }
 
 static int to_post_data(ckc_transport_t *t, const char *account)
 {
-    char buf[128];
-    
     curl_formadd(&t->formpost,
                  &t->lastptr,
-                 CURLFORM_COPYNAME, "username",
+                 CURLFORM_COPYNAME, "user",
                  CURLFORM_COPYCONTENTS, t->username,
                  CURLFORM_END);
-    
+
     curl_formadd(&t->formpost,
                  &t->lastptr,
                  CURLFORM_COPYNAME, "password",
                  CURLFORM_COPYCONTENTS, t->password,
                  CURLFORM_END);
 
-    if (account) {
+    if (account != NULL) {
         curl_formadd(&t->formpost,
                      &t->lastptr,
                      CURLFORM_COPYNAME, "account",
                      CURLFORM_COPYCONTENTS, account,
                      CURLFORM_END);
-    }    
+    }
 
     curl_easy_setopt(t->curl, CURLOPT_HTTPPOST, t->formpost);
-    
+
     return 0;
+}
+
+static ckc_ll_t* split_by_lines(const char *str)
+{
+    ckc_ll_t *head = NULL;
+    ckc_ll_t *tmp;
+    char *s = strdup(str);
+    char *p = NULL;
+    p = strtok(s, "\n");
+
+    while (p != NULL)
+    {
+        tmp = malloc(sizeof(ckc_ll_t));
+        tmp->s = strdup(p);
+        tmp->next = head;
+        head = tmp;
+        p = strtok(NULL, "\n");
+    }
+
+    return head;
 }
 
 static int ckc_transport_run(ckc_transport_t *t, ckc_buf_t *buf)
@@ -66,8 +85,7 @@ static int ckc_transport_run(ckc_transport_t *t, ckc_buf_t *buf)
     if (httprc >299 || httprc <= 199) {
         fprintf(stderr, "Endpoint returned HTTP %d\n",
                 (int)httprc);
-        fwrite(buf->data, 1, buf->len, stderr);
-        fprintf(stderr, "\n\n");
+        fprintf(stderr, "%s\n\n", buf->data);
         return -1;
     }
 
@@ -76,6 +94,7 @@ static int ckc_transport_run(ckc_transport_t *t, ckc_buf_t *buf)
 
 int ckc_transport_list_accounts(ckc_transport_t *t, ckc_accounts_t **ants)
 {
+    ckc_ll_t *l;
     ckc_buf_t buf = {0};
 
     int rv = to_post_data(t, NULL);
@@ -92,11 +111,18 @@ int ckc_transport_list_accounts(ckc_transport_t *t, ckc_accounts_t **ants)
         return rv;
     }
 
+    l = split_by_lines(buf.data);
+    while (l != NULL) {
+        fprintf(stderr, "line: %s\n", l->s);
+        l = l->next;
+    }
+
     return 0;
 }
 
 int ckc_transport_get_consumer(ckc_transport_t *t, const char *account)
 {
+    ckc_ll_t *l;
     ckc_buf_t buf = {0};
     int rv = to_post_data(t, account);
     
@@ -105,13 +131,19 @@ int ckc_transport_get_consumer(ckc_transport_t *t, const char *account)
     }
     
     curl_easy_setopt(t->curl, CURLOPT_URL, "https://www.cloudkick.com/oauth/create_consumer/");
-    
+
     rv = ckc_transport_run(t, &buf);
     
     if (rv < 0) {
         return rv;
     }
-    
+
+    l = split_by_lines(buf.data);
+    while (l != NULL) {
+        fprintf(stderr, "line: %s\n", l->s);
+        l = l->next;
+    }
+
     return 0;
 }
 
@@ -126,7 +158,7 @@ int ckc_transport_init(ckc_transport_t *t)
              CKC_VERSION_MAJOR, CKC_VERSION_MINOR, CKC_VERSION_PATCH);
     
     curl_easy_setopt(t->curl, CURLOPT_USERAGENT, uabuf);
-    
+//#define CKC_DEBUG
 #ifdef CKC_DEBUG
     curl_easy_setopt(t->curl, CURLOPT_VERBOSE, 1);
 #endif
@@ -134,10 +166,10 @@ int ckc_transport_init(ckc_transport_t *t)
     /* TODO: this is less than optimal */
     curl_easy_setopt(t->curl, CURLOPT_SSL_VERIFYPEER, 0L);
     curl_easy_setopt(t->curl, CURLOPT_SSL_VERIFYHOST, 0L);
-    
+
     t->headerlist = curl_slist_append(t->headerlist, buf);
     curl_easy_setopt(t->curl, CURLOPT_HTTPHEADER, t->headerlist);
-    
+
     return 0;
 }
 
