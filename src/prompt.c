@@ -61,3 +61,21 @@ int ckc_prompt_number(int *num, int min, int max)
     return 0;
 }
 
+int ckc_prompt_yn()
+{
+    char buf[256] = {0};
+    fflush(stdout);
+    char *p = fgets(&buf[0], sizeof(buf), stdin);
+    if (p == NULL) {
+        return -1;
+    }
+
+    if (strcasecmp(p, "y") == 0 ||
+        strcasecmp(p, "yes") == 0 ||
+        strcasecmp(p, "fuckyeah") == 0) { /* easteregg for soemone who reads commit mails */
+        return 0;
+    }
+
+    return 1;
+}
+

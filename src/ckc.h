@@ -53,6 +53,7 @@ typedef struct ckc_accounts_t {
 int ckc_prompt_username(const char **username);
 int ckc_prompt_password(const char **password);
 int ckc_prompt_number(int *num, int min, int max);
+int ckc_prompt_yn();
 
 int ckc_transport_init(ckc_transport_t *t);
 int ckc_transport_list_accounts(ckc_transport_t *t, ckc_accounts_t **accounts);
