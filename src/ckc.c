@@ -76,6 +76,10 @@ int main(int argc, char *const *argv)
 
     ckc_transport_init(t);
 
+    fprintf(stdout, "Welcome to the Cloudkick configuration utility. This will securely \n");
+    fprintf(stdout, "use your Cloudkick username and password to generate an API key \n");
+    fprintf(stdout, "for the Cloudkick Agent.\n\n");
+
     rv = ckc_prompt_username(&username);
     if (rv < 0) {
         ckc_error_out("error reading username");
