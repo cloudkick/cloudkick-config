@@ -27,8 +27,26 @@ void ckc_error_out(const char *msg)
 }
 
 
+static void write_config(FILE *fp, const char *key, const char *secret)
+{
+    fprintf(fp, "#\n");
+    fprintf(fp, "# Cloudkick Congfiguration\n");
+    fprintf(fp, "#\n");
+    fprintf(fp, "# See the following URL for the most up to date documentation:\n");
+    fprintf(fp, "#   https://support.cloudkick.com/Agent/Cloudkick.conf\n");
+    fprintf(fp, "#\n");
+    fprintf(fp, "# The keys in cloudkick.conf are tied to your entire account,\n");
+    fprintf(fp, "# so you can deploy the same file across all of your machines.\n");
+    fprintf(fp, "#\n");
+    fprintf(fp, "# oAuth consumer key\n");
+    fprintf(fp, "oauth_key %s\n", key);
+    fprintf(fp, "# oAuth consumer secret\n");
+    fprintf(fp, "oauth_secret %s\n", key);
+}
+
 int main(int argc, char *const *argv)
 {
+    int happy = 1;
     const char *account = NULL;
     const char *password = NULL;
     const char *username = NULL;
@@ -90,7 +108,12 @@ int main(int argc, char *const *argv)
             fprintf(stdout, "  [%d]  %s\n", i, l->s);
         }
         ckc_prompt_number(&t, 1, i-1);
-        return 0;
+        for (l = a->head; l != NULL; l = l->next, i++) {
+            if (i == t) {
+                account = l->s;
+                break;
+            }
+        }
     }
 
     ckc_transport_free(t);
@@ -111,8 +134,37 @@ int main(int argc, char *const *argv)
 
     const char *secret = l->s;
     const char *key = l->next->s;
-    fprintf(stderr, "key: %s\nsecret: %s\n", key, secret);
+
 #define CONF "/etc/cloudkick.conf"
+    FILE *fp = stdout;
+    if (access(CONF,  F_OK) == 0) {
+        fprintf(stdout, "/etc/cloudkick.conf already exists!\n");
+        fprintf(stdout, "Overwrite [y/n] ?: ");
+        rv = ckc_prompt_yn();
+        if (rv < 0) {
+            ckc_error_out("Config file already exists");
+        }
+    }
+
+    fp = fopen(CONF, "w");
+    if (fp == NULL) {
+        fprintf(stderr, "Unable to open "CONF" for writing!\n");
+        fprintf(stderr, "\n");
+        fprintf(stderr, "Would of written:\n");
+        fp = stdout;
+        happy = 0;
+    }
+    else {
+        fprintf(stdout, "Writing configuration to "CONF"\n");
+    }
+
+    write_config(fp, key, secret);
+
+    if (happy) {
+        fprintf(stdout, "All done!\n");
+    }
+    fprintf(stdout, "\n");
+
     ckc_transport_free(t);
 
     return 0;
