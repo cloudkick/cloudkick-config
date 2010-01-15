@@ -141,7 +141,7 @@ int main(int argc, char *const *argv)
         fprintf(stdout, "/etc/cloudkick.conf already exists!\n");
         fprintf(stdout, "Overwrite [y/n] ?: ");
         rv = ckc_prompt_yn();
-        if (rv < 0) {
+        if (rv < 0 || rv == 1) {
             ckc_error_out("Config file already exists");
         }
     }
