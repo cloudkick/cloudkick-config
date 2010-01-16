@@ -41,7 +41,7 @@ static void write_config(FILE *fp, const char *key, const char *secret)
     fprintf(fp, "# oAuth consumer key\n");
     fprintf(fp, "oauth_key %s\n", key);
     fprintf(fp, "# oAuth consumer secret\n");
-    fprintf(fp, "oauth_secret %s\n", key);
+    fprintf(fp, "oauth_secret %s\n", secret);
 }
 
 int main(int argc, char *const *argv)
