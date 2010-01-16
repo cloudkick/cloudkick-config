@@ -70,6 +70,8 @@ int ckc_prompt_yn()
         return -1;
     }
 
+    ckc_nuke_newlines(p);
+
     if (strcasecmp(p, "y") == 0 ||
         strcasecmp(p, "yes") == 0 ||
         strcasecmp(p, "fuckyeah") == 0) { /* easteregg for soemone who reads commit mails */
