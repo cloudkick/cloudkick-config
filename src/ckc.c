@@ -112,8 +112,8 @@ int main(int argc, char *const *argv)
             fprintf(stdout, "  [%d]  %s\n", i, l->s);
         }
         ckc_prompt_number(&t, 1, i-1);
-        for (l = a->head; l != NULL; l = l->next, i++) {
-            if (i == t) {
+        for (l = a->head, i = 0; l != NULL; l = l->next, i++) {
+            if (i == t-1) {
                 account = l->s;
                 break;
             }
