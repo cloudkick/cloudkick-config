@@ -77,6 +77,21 @@ ckc = SConscript("src/SConscript")
 targets = [ckc]
 target_packages = []
 
+def locate(pattern, root=os.curdir):
+    '''Locate all files matching supplied filename pattern in and below
+    supplied root directory.'''
+    for path, dirs, files in os.walk(os.path.abspath(root)):
+        for filename in fnmatch.filter(files, pattern):
+            yield os.path.join(path, filename)
+
+site_files = []
+site_files.extend(env.Glob("site_scons/*/*.py"))
+site_files.extend(env.Glob("site_scons/*.py"))
+site_files.extend(env.Glob("src/*.h"))
+site_files.extend(env.Glob("build.py"))
+site_files.extend(locate('*', 'extern'))
+env.Depends('.', site_files)
+
 if env.get('HAVE_RPMBUILD') or env.get('HAVE_DPKG'):
   pkgbase = "%s-%s" % ("cloudkick-config", env['version_string'])
   subst = {}
