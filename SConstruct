@@ -57,6 +57,9 @@ if conf.env.WhereIs('dpkg'):
   if not st:
     Exit()
 
+if conf.env.WhereIs('rpmbuild'):
+    conf.env['HAVE_RPMBUILD'] = True
+
 conf.env.AppendUnique(CPPPATH = [pjoin(cprefix[1], "include")])
 
 # TOOD: this is less than optimal, since curl-config polutes this quite badly :(
@@ -73,16 +76,34 @@ ckc = SConscript("src/SConscript")
 
 targets = [ckc]
 target_packages = []
-if env.get('HAVE_DPKG'):
-  subst = {}
+
+if env.get('HAVE_RPMBUILD') or env.get('HAVE_DPKG'):
   pkgbase = "%s-%s" % ("cloudkick-config", env['version_string'])
-  debname = pkgbase +"_"+ env['debian_arch'] +".deb"
+  subst = {}
+
   substkeys = Split("""
   version_string
   debian_arch""")
 
   for x in substkeys:
       subst['%' + str(x) + '%'] = str(env.get(x))
+
+if env.get('HAVE_RPMBUILD'):
+  env.Install('/usr/bin/', ckc[0])
+  packaging = {'NAME': 'cloudkick-config',
+                'VERSION': env['version_string'],
+                'PACKAGEVERSION':  0,
+                'LICENSE': 'Proprietary',
+                'SUMMARY': 'Cloudkick Configuration Tool',
+                'DESCRIPTION': 'Cloudkick Configuration Tool',
+                'X_RPM_GROUP': 'System/Monitoring',
+                'source': [],
+                'PACKAGETYPE': 'rpm'}
+  target_packages.append(env.Package(**packaging))
+
+  
+if env.get('HAVE_DPKG'):
+  debname = pkgbase +"_"+ env['debian_arch'] +".deb"
 
   deb_control = env.SubstFile('packaging/debian.control.in', SUBST_DICT = subst)
   deb_conffiles = env.SubstFile('packaging/debian.conffiles.in', SUBST_DICT = subst)
