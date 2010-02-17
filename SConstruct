@@ -11,7 +11,7 @@ opts.Add(PathVariable('CURL', 'Path to curl-config', WhereIs('curl-config')))
 
 env = Environment(options=opts,
                   ENV = os.environ.copy(),
-                  tools=['default', 'subst'])
+                  tools=['default', 'subst', 'packaging', 'install'])
 
 #TODO: convert this to a configure builder, so it gets cached
 def read_version(prefix, path):
