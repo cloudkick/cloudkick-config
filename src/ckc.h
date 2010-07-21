@@ -36,6 +36,8 @@ typedef struct ckc_transport_t {
     struct curl_httppost *lastptr;
     const char *username;
     const char *password;
+    const char *sessionid;
+    const char *token;
 } ckc_transport_t;
 
 typedef struct ckc_ll_t ckc_ll_t;
@@ -51,7 +53,7 @@ typedef struct ckc_accounts_t {
 } ckc_accounts_t;
 
 int ckc_prompt_username(const char **username);
-int ckc_prompt_password(const char **password);
+int ckc_prompt_password(const char **password, const char *prompt);
 int ckc_prompt_number(int *num, int min, int max);
 int ckc_prompt_yn();
 

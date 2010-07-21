@@ -20,17 +20,33 @@ static size_t write_cb(void *ptr, size_t size, size_t nmemb, void *baton)
 
 static int to_post_data(ckc_transport_t *t, const char *account)
 {
-    curl_formadd(&t->formpost,
-                 &t->lastptr,
-                 CURLFORM_COPYNAME, "user",
-                 CURLFORM_COPYCONTENTS, t->username,
-                 CURLFORM_END);
+	if (t->username != NULL && t->password != NULL) {
+		curl_formadd(&t->formpost,
+		             &t->lastptr,
+		             CURLFORM_COPYNAME, "user",
+		             CURLFORM_COPYCONTENTS, t->username,
+		             CURLFORM_END);
 
-    curl_formadd(&t->formpost,
-                 &t->lastptr,
-                 CURLFORM_COPYNAME, "password",
-                 CURLFORM_COPYCONTENTS, t->password,
-                 CURLFORM_END);
+		curl_formadd(&t->formpost,
+		             &t->lastptr,
+		             CURLFORM_COPYNAME, "password",
+		             CURLFORM_COPYCONTENTS, t->password,
+		             CURLFORM_END);
+    }
+    
+    if (t->sessionid != NULL && t->token != NULL) {
+		curl_formadd(&t->formpost,
+		             &t->lastptr,
+		             CURLFORM_COPYNAME, "sessionid",
+		             CURLFORM_COPYCONTENTS, t->sessionid,
+		             CURLFORM_END);
+
+		curl_formadd(&t->formpost,
+		             &t->lastptr,
+		             CURLFORM_COPYNAME, "token",
+		             CURLFORM_COPYCONTENTS, t->token,
+		             CURLFORM_END);
+    }
 
     if (account != NULL) {
         curl_formadd(&t->formpost,
@@ -65,11 +81,24 @@ static ckc_ll_t* split_by_lines(const char *str)
     return head;
 }
 
+char *split_string(char *str, char delim)
+{
+    char *middle = strchr(str, delim);
+    *middle = '\0';
+    return middle + 1;
+}
+
 static int ckc_transport_run(ckc_transport_t *t, ckc_buf_t *buf)
 {
     long httprc = -1;
     CURLcode res;
+    int rv;
 
+	char *second = NULL;
+    char *mfa_backend = NULL;
+    char *mfa_sessionid = NULL;
+    char *token = NULL;
+	
     curl_easy_setopt(t->curl, CURLOPT_WRITEDATA, (void *)buf);
     curl_easy_setopt(t->curl, CURLOPT_WRITEFUNCTION, write_cb);
     res = curl_easy_perform(t->curl);
@@ -89,6 +118,49 @@ static int ckc_transport_run(ckc_transport_t *t, ckc_buf_t *buf)
         return -1;
     }
 
+    if (strncmp("mfa=", buf->data, 3) == 0)
+    {	
+    	// Multi factor authentication is enabled
+    	char *temp = malloc(strlen(buf->data)+1);
+		strcpy(temp, buf->data);
+	
+    	second = split_string(temp, '&');
+    	mfa_backend = split_string(temp, '=');
+    	mfa_sessionid = split_string(second, '=');
+
+    	fprintf(stdout, "%s multi factor authentication is enabled. Please enter your one time token bellow.\n", mfa_backend);
+    	rv = ckc_prompt_password(&token, "Token");
+    	
+    	if (rv < 0)
+    	{
+    		return rv;
+    	}
+
+    	t->sessionid = mfa_sessionid;
+    	t->token = token;
+		
+		buf->data = NULL;
+		buf->len = NULL;
+		
+    	rv = to_post_data(t, NULL);
+		res = curl_easy_perform(t->curl);
+		
+		if (res != 0) {
+		    fprintf(stderr, "Failed talking to endpoint: (%d) %s\n\n",
+		            res, curl_easy_strerror(res));
+		    return -1;
+    	}
+    	
+    	curl_easy_getinfo(t->curl, CURLINFO_RESPONSE_CODE, &httprc);
+
+		if (httprc >299 || httprc <= 199) {
+		    fprintf(stderr, "Endpoint returned HTTP %d\n",
+		            (int)httprc);
+		    fprintf(stderr, "%s\n\n", buf->data);
+		    return -1;
+		}
+     }
+
     return 0;
 }
 
@@ -97,7 +169,7 @@ int ckc_transport_list_accounts(ckc_transport_t *t, ckc_accounts_t **acct)
     ckc_accounts_t *a;
     ckc_ll_t *l;
     ckc_buf_t buf = {0};
-
+    
     int rv = to_post_data(t, NULL);
 
     if (rv < 0) {

@@ -26,7 +26,6 @@ void ckc_error_out(const char *msg)
     exit(EXIT_FAILURE);
 }
 
-
 static void write_config(FILE *fp, const char *key, const char *secret)
 {
     fprintf(fp, "#\n");
@@ -85,11 +84,11 @@ int main(int argc, char *const *argv)
         ckc_error_out("error reading username");
     }
 
-    rv = ckc_prompt_password(&password);
+    rv = ckc_prompt_password(&password, "Password");
     if (rv < 0) {
         ckc_error_out("error reading password");
     }
-
+    
     t->username = username;
     t->password = password;
     ckc_accounts_t *a;

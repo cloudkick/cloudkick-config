@@ -30,9 +30,11 @@ int ckc_prompt_username(const char **username)
     return 0;
 }
 
-int ckc_prompt_password(const char **password)
+int ckc_prompt_password(const char **password, const char *prompt)
 {
-    char *p = getpass("Password: ");
+	char string[256] = {0};
+	snprintf(string, sizeof(string), "%s: ", prompt);
+    char *p = getpass(string);
     if (p == NULL) {
         return -1;
     }

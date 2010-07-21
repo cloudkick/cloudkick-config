@@ -19,7 +19,7 @@
 #define _ckc_version_h_
 
 #define CKC_VERSION_MAJOR 1
-#define CKC_VERSION_MINOR 0
-#define CKC_VERSION_PATCH 4
+#define CKC_VERSION_MINOR 1 
+#define CKC_VERSION_PATCH 0 
 
 #endif
