@@ -11,6 +11,7 @@ opts.Add(PathVariable('CURL', 'Path to curl-config', WhereIs('curl-config')))
 
 env = Environment(options=opts,
                   ENV = os.environ.copy(),
+                  TARFLAGS = '-c -z',
                   tools=['default', 'subst', 'packaging', 'install'])
 
 #TODO: convert this to a configure builder, so it gets cached
@@ -57,6 +58,16 @@ if conf.env.WhereIs('dpkg'):
   if not st:
     Exit()
 
+if conf.env.WhereIs('emerge'):
+  conf.env['HAVE_EMERGE'] = True
+  if conf.CheckDeclaration("__i386__"):
+    platform = 'i386'
+  elif conf.CheckDeclaration("__amd64__"):
+    platform = 'amd64'
+  else:
+    Exit()
+  conf.env['gentoo_arch'] = platform
+
 if conf.env.WhereIs('rpmbuild'):
     conf.env['HAVE_RPMBUILD'] = True
 
@@ -92,7 +103,7 @@ site_files.extend(env.Glob("build.py"))
 site_files.extend(locate('*', 'extern'))
 env.Depends('.', site_files)
 
-if env.get('HAVE_RPMBUILD') or env.get('HAVE_DPKG'):
+if env.get('HAVE_RPMBUILD') or env.get('HAVE_DPKG') or env.get('HAVE_EMERGE'):
   pkgbase = "%s-%s" % ("cloudkick-config", env['version_string'])
   subst = {}
 
@@ -140,6 +151,13 @@ if env.get('HAVE_DPKG'):
                 ])
 
   target_packages.append(deb)
+
+if env.get('HAVE_EMERGE'):
+  tgzroot = 'tgz_temproot'
+  tgzname = pkgbase +"_"+ env['gentoo_arch'] +".tar.gz"
+  tgz = env.Tar(tgzname, [ckc,])
+  target_packages.append(tgz)
+
 targets.extend(target_packages)
 
 env.Default(targets)
