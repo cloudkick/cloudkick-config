@@ -29,6 +29,13 @@ def read_version(prefix, path):
 env['version_major'], env['version_minor'], env['version_patch'] = read_version('CKC', 'src/ckc_version.h')
 env['version_string'] = "%d.%d.%d"  % (env['version_major'], env['version_minor'], env['version_patch'])
 
+dvpath = "/etc/debian_version"
+if os.path.exists(dvpath):
+  contents = open(dvpath).read().strip()
+  # TODO: don't hard code this
+  if contents == "4.0":
+    env['version_string'] += "~bpo40"
+
 conf = Configure(env, custom_tests = {'CheckCurlPrefix': ac.CheckCurlPrefix,
                                       'CheckCurlLibs': ac.CheckCurlLibs,
                                       'CheckDpkgArch': ac.CheckDpkgArch})
@@ -129,14 +136,7 @@ if env.get('HAVE_RPMBUILD'):
 
   
 if env.get('HAVE_DPKG'):
-  dvpath = "/etc/debian_version"
-  if os.path.exists(dvpath):
-    contents = open(dvpath).read().strip()
-    # TODO: don't hard code this
-    if contents == "4.0":
-      env["DEBIAN_VERSION_EXTRA"] = "~bpo40_"
-
-  debname = pkgbase + env.get("DEBIAN_VERSION_EXTRA", "_") + env['debian_arch'] +".deb"
+  debname = pkgbase + "_" + env['debian_arch'] +".deb"
 
   deb_control = env.SubstFile('packaging/debian.control.in', SUBST_DICT = subst)
   deb_conffiles = env.SubstFile('packaging/debian.conffiles.in', SUBST_DICT = subst)
