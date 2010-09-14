@@ -11,7 +11,7 @@ opts.Add(PathVariable('CURL', 'Path to curl-config', WhereIs('curl-config')))
 
 env = Environment(options=opts,
                   ENV = os.environ.copy(),
-                  tools=['default', 'subst'])
+                  tools=['default', 'subst', 'packaging', 'install'])
 
 #TODO: convert this to a configure builder, so it gets cached
 def read_version(prefix, path):
@@ -57,6 +57,9 @@ if conf.env.WhereIs('dpkg'):
   if not st:
     Exit()
 
+if conf.env.WhereIs('rpmbuild'):
+    conf.env['HAVE_RPMBUILD'] = True
+
 conf.env.AppendUnique(CPPPATH = [pjoin(cprefix[1], "include")])
 
 # TOOD: this is less than optimal, since curl-config polutes this quite badly :(
@@ -73,16 +76,56 @@ ckc = SConscript("src/SConscript")
 
 targets = [ckc]
 target_packages = []
-if env.get('HAVE_DPKG'):
-  subst = {}
+
+def locate(pattern, root=os.curdir):
+    '''Locate all files matching supplied filename pattern in and below
+    supplied root directory.'''
+    for path, dirs, files in os.walk(os.path.abspath(root)):
+        for filename in fnmatch.filter(files, pattern):
+            yield os.path.join(path, filename)
+
+site_files = []
+site_files.extend(env.Glob("site_scons/*/*.py"))
+site_files.extend(env.Glob("site_scons/*.py"))
+site_files.extend(env.Glob("src/*.h"))
+site_files.extend(env.Glob("build.py"))
+site_files.extend(locate('*', 'extern'))
+env.Depends('.', site_files)
+
+if env.get('HAVE_RPMBUILD') or env.get('HAVE_DPKG'):
   pkgbase = "%s-%s" % ("cloudkick-config", env['version_string'])
-  debname = pkgbase +"_"+ env['debian_arch'] +".deb"
+  subst = {}
+
   substkeys = Split("""
   version_string
   debian_arch""")
 
   for x in substkeys:
       subst['%' + str(x) + '%'] = str(env.get(x))
+
+if env.get('HAVE_RPMBUILD'):
+  env.Install('/usr/bin/', ckc[0])
+  packaging = {'NAME': 'cloudkick-config',
+                'VERSION': env['version_string'],
+                'PACKAGEVERSION':  0,
+                'LICENSE': 'Proprietary',
+                'SUMMARY': 'Cloudkick Configuration Tool',
+                'DESCRIPTION': 'Cloudkick Configuration Tool',
+                'X_RPM_GROUP': 'System/Monitoring',
+                'source': [],
+                'PACKAGETYPE': 'rpm'}
+  target_packages.append(env.Package(**packaging))
+
+  
+if env.get('HAVE_DPKG'):
+  dvpath = "/etc/debian_version"
+  if os.path.exists(dvpath):
+    contents = open(dvpath).read().strip()
+    # TODO: don't hard code this
+    if contents == "4.0":
+      env["DEBIAN_VERSION_EXTRA"] = "~bpo40_"
+
+  debname = pkgbase + env.get("DEBIAN_VERSION_EXTRA", "_") + env['debian_arch'] +".deb"
 
   deb_control = env.SubstFile('packaging/debian.control.in', SUBST_DICT = subst)
   deb_conffiles = env.SubstFile('packaging/debian.conffiles.in', SUBST_DICT = subst)
