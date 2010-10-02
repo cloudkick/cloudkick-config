@@ -1,0 +1,10 @@
+Package: cloudkick-config
+Version: %version_string%
+Section: non-free/net
+Priority: optional
+Architecture: %debian_arch%
+Depends: openssl, lsb-base (>= 3.0-6), libcurl3
+Maintainer: support@cloudkick.com
+Provides: cloudkick-config
+Homepage: http://www.cloudkick.com
+Description: Cloudkick Configuration Tool
