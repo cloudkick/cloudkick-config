@@ -1,0 +1,3 @@
+Cloudkick Config is a small command line utility to easily fetch
+the  OAuth Consumer keys used by the Cloudkick Agent, and write
+them to `/etc/cloudkick.conf`.
