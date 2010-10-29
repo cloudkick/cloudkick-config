@@ -17,6 +17,9 @@
 #include "ckc.h"
 #include "ckc_version.h"
 
+#define ACCOUNTS_ENDPOINT "https://www.cloudkick.com/oauth/list_accounts/"
+#define CREATE_CONSUMER_ENDPOINT "https://www.cloudkick.com/oauth/create_consumer/"
+
 typedef struct ckc_buf_t {
     char *data;
     size_t len;
@@ -215,7 +218,7 @@ int ckc_transport_list_accounts(ckc_transport_t *t, ckc_accounts_t **acct,
         return rv;
     }
 
-    curl_easy_setopt(t->curl, CURLOPT_URL, "https://www.cloudkick.com/oauth/list_accounts/");
+    curl_easy_setopt(t->curl, CURLOPT_URL, ACCOUNTS_ENDPOINT);
 
     rv = ckc_transport_run(t, &buf, &mfa_ssid_returned);
 
@@ -252,7 +255,7 @@ int ckc_transport_get_consumer(ckc_transport_t *t, const char *account,
         return rv;
     }
 
-    curl_easy_setopt(t->curl, CURLOPT_URL, "https://www.cloudkick.com/oauth/create_consumer/");
+    curl_easy_setopt(t->curl, CURLOPT_URL, CREATE_CONSUMER_ENDPOINT);
 
     rv = ckc_transport_run(t, &buf, &mfa_ssid);
 
