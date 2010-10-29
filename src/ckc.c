@@ -28,7 +28,7 @@ static void show_help()
 {
     fprintf(stdout, "cloudkick-config - Generates /etc/cloudkick.conf\n");
     fprintf(stdout, "  Usage:  \n");
-    fprintf(stdout, "    ckl [-h|-V]\n");
+    fprintf(stdout, "    cloudkick-config [-h|-V]\n");
     fprintf(stdout, "\n");
     fprintf(stdout, "     -h          Show Help message\n");
     fprintf(stdout, "     -V          Show Version number\n");
