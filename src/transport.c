@@ -17,8 +17,8 @@
 #include "ckc.h"
 #include "ckc_version.h"
 
-#define ACCOUNTS_ENDPOINT "https://www.cloudkick.com/oauth/list_accounts/"
-#define CREATE_CONSUMER_ENDPOINT "https://www.cloudkick.com/oauth/create_consumer/"
+#define ACCOUNTS_ENDPOINT "https://www.cloudkick.com/oauth/list_accounts/?mfa_support=1"
+#define CREATE_CONSUMER_ENDPOINT "https://www.cloudkick.com/oauth/create_consumer/?mfa_support=1"
 
 typedef struct ckc_buf_t {
     char *data;
@@ -110,6 +110,11 @@ static ckc_ll_t* split_by_lines(const char *str)
 char *split_string(char *str, char delim)
 {
     char *middle = strchr(str, delim);
+
+    if (middle == NULL) {
+        return NULL;
+    }
+
     *middle = '\0';
     return middle + 1;
 }
@@ -121,11 +126,12 @@ static int ckc_transport_run(ckc_transport_t *t, ckc_buf_t *buf,
     CURLcode res;
     int rv;
 
+    char *temp = NULL;
     char *first = NULL;
     char *second = NULL;
     char *mfa_backend = NULL;
     char *mfa_sessionid = NULL;
-    char *token = NULL;
+    const char *token = NULL;
 
     curl_easy_setopt(t->curl, CURLOPT_WRITEDATA, (void *)buf);
     curl_easy_setopt(t->curl, CURLOPT_WRITEFUNCTION, write_cb);
@@ -149,23 +155,37 @@ static int ckc_transport_run(ckc_transport_t *t, ckc_buf_t *buf,
     if (strncmp("mfa=", buf->data, 3) == 0)
     {
         // Multi factor authentication is enabled
-        char *temp = malloc(strlen(buf->data)+1);
-        strcpy(temp, buf->data);
+        temp = strdup(buf->data);
 
         second = split_string(temp, '&');
+
+        if (second == NULL) {
+            ckc_error_out("Failed parsing server response");
+        }
+
         mfa_backend = split_string(temp, '=');
         mfa_sessionid = split_string(second, '=');
 
-        fprintf(stdout, "%s multi factor authentication is enabled. Please enter your one time token bellow.\n", mfa_backend);
+        if (mfa_backend == NULL || mfa_sessionid == NULL)
+        {
+            ckc_error_out("Failed parsing server response");
+        }
+
+        fprintf(stdout, "%s multi factor authentication is enabled."
+                        " Please enter your one time token bellow.\n",
+                        mfa_backend);
         rv = ckc_prompt_password(&token, "Token");
 
-        if (rv < 0)
-        {
+        if (rv < 0) {
             return rv;
         }
 
         t->sessionid = mfa_sessionid;
         t->token = token;
+
+        if (temp) {
+            free(temp);
+        }
 
         buf->data = NULL;
         buf->len = 0;
@@ -188,16 +208,22 @@ static int ckc_transport_run(ckc_transport_t *t, ckc_buf_t *buf,
             return -1;
         }
 
-        if (strncmp("mfa_ssid", buf->data, 8) == 0)
-        {
-            char *temp = malloc(strlen(buf->data)+1);
-            strcpy(temp, buf->data);
+        if (strncmp("mfa_ssid", buf->data, 8) == 0) {
+            temp = strdup(buf->data);
 
             second = split_string(temp, '\n');
             first = split_string(temp, '=');
 
+            if (second == NULL || first == NULL) {
+              ckc_error_out("Failed parsing server response");
+            }
+
             buf->data = second;
             *mfa_ssid = first;
+
+            if (temp) {
+                free(temp);
+            }
         }
     }
 
