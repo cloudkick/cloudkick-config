@@ -1,3 +1,18 @@
+/*
+ * Copyright 2010 Cloudkick Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
 
 #include "ckc.h"
 #include "ckc_version.h"
@@ -41,6 +56,8 @@ static void write_config(FILE *fp, const char *key, const char *secret)
     fprintf(fp, "oauth_key %s\n", key);
     fprintf(fp, "# oAuth consumer secret\n");
     fprintf(fp, "oauth_secret %s\n", secret);
+    fprintf(fp, "# Path to a directory containing custom agent plugins\n");
+    fprintf(fp, "local_plugins_path /usr/lib/cloudkick-agent/plugins/\n");
 }
 
 int main(int argc, char *const *argv)
@@ -54,7 +71,7 @@ int main(int argc, char *const *argv)
     int c;
 
     curl_global_init(CURL_GLOBAL_ALL);
-    
+
     while ((c = getopt(argc, argv, "hVslm:d:")) != -1) {
         switch (c) {
             case 'V':
@@ -70,7 +87,7 @@ int main(int argc, char *const *argv)
     }
 
     curl_global_cleanup();
-    
+
     t = calloc(1, sizeof(ckc_transport_t));
 
     ckc_transport_init(t);
@@ -130,7 +147,7 @@ int main(int argc, char *const *argv)
     t->password = password;
 
     rv = ckc_transport_get_consumer(t, account, &l);
-    
+
     if (rv < 0) {
         ckc_error_out("error getting api key");
     }
@@ -172,5 +189,3 @@ int main(int argc, char *const *argv)
 
     return 0;
 }
-
-
