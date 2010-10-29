@@ -215,7 +215,7 @@ int ckc_transport_list_accounts(ckc_transport_t *t, ckc_accounts_t **acct,
         return rv;
     }
 
-    curl_easy_setopt(t->curl, CURLOPT_URL, "http://127.0.0.1:8000/oauth/list_accounts/");
+    curl_easy_setopt(t->curl, CURLOPT_URL, "https://www.cloudkick.com/oauth/list_accounts/");
 
     rv = ckc_transport_run(t, &buf, &mfa_ssid_returned);
 
@@ -252,7 +252,7 @@ int ckc_transport_get_consumer(ckc_transport_t *t, const char *account,
         return rv;
     }
 
-    curl_easy_setopt(t->curl, CURLOPT_URL, "http://127.0.0.1:8000/oauth/create_consumer/");
+    curl_easy_setopt(t->curl, CURLOPT_URL, "https://www.cloudkick.com/oauth/create_consumer/");
 
     rv = ckc_transport_run(t, &buf, &mfa_ssid);
 
