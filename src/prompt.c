@@ -42,6 +42,7 @@ int ckc_prompt_username(const char **username)
     }
     ckc_nuke_newlines(p);
     *username = strdup(p);
+
     return 0;
 }
 
@@ -50,7 +51,8 @@ int ckc_prompt_password(const char **password, const char *prompt)
 	char string[256] = {0};
 	snprintf(string, sizeof(string), "%s: ", prompt);
     char *p = getpass(string);
-    if (p == NULL) {
+
+    if (p == NULL || *p == '\0') {
         return -1;
     }
 

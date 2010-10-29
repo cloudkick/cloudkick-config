@@ -66,6 +66,7 @@ int main(int argc, char *const *argv)
     const char *account = NULL;
     const char *password = NULL;
     const char *username = NULL;
+    const char *mfa_ssid = NULL;
     int rv;
     ckc_transport_t *t;
     int c;
@@ -105,12 +106,12 @@ int main(int argc, char *const *argv)
     if (rv < 0) {
         ckc_error_out("error reading password");
     }
-    
+
     t->username = username;
     t->password = password;
     ckc_accounts_t *a;
 
-    rv = ckc_transport_list_accounts(t, &a);
+    rv = ckc_transport_list_accounts(t, &a, &mfa_ssid);
 
     if (rv < 0) {
         ckc_error_out("error listing accounts");
@@ -145,6 +146,10 @@ int main(int argc, char *const *argv)
     l = NULL;
     t->username = username;
     t->password = password;
+
+    if (mfa_ssid != NULL) {
+        t->mfa_ssid = mfa_ssid;
+    }
 
     rv = ckc_transport_get_consumer(t, account, &l);
 
