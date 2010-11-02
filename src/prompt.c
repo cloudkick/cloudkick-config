@@ -37,10 +37,17 @@ int ckc_prompt_username(const char **username)
     fprintf(stdout, "Username: ");
     fflush(stdout);
     char *p = fgets(&buf[0], sizeof(buf), stdin);
+
     if (p == NULL) {
         return -1;
     }
+
     ckc_nuke_newlines(p);
+
+    if (*p == '\0') {
+      return -1;
+    }
+
     *username = strdup(p);
 
     return 0;
