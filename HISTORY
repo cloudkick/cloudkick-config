@@ -1,0 +1,6 @@
+Change history
+
+1.2.0
+
+- Write default path to the agent custom plugins in the generated config file
+- Add support for accounts with enabled multi factor authentication
