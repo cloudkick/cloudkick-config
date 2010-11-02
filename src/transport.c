@@ -183,15 +183,15 @@ static int ckc_transport_run(ckc_transport_t *t, ckc_buf_t *buf,
         t->sessionid = mfa_sessionid;
         t->token = token;
 
-        if (temp) {
-            free(temp);
-        }
-
         buf->data = NULL;
         buf->len = 0;
 
         rv = to_post_data(t, NULL);
         res = curl_easy_perform(t->curl);
+
+        if (temp) {
+            free(temp);
+        }
 
         if (res != 0) {
             fprintf(stderr, "Failed talking to endpoint: (%d) %s\n\n",
