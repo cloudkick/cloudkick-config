@@ -183,4 +183,13 @@ if env.get('HAVE_EMERGE'):
 
 targets.extend(target_packages)
 
+copies = []
+for x in target_packages:
+  for i in x:
+    if hasattr(i, 'rfile'):
+      copies.append(env.Command(pjoin('distfiles', os.path.basename(i.get_abspath())), i,
+              [Copy('$TARGET', '$SOURCE')]))
+target_packages.append(copies)
+
 env.Default(targets)
+env.Alias('dist', target_packages)
