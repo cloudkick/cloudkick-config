@@ -219,7 +219,7 @@ static int ckc_transport_run(ckc_transport_t *t, ckc_buf_t *buf,
             }
 
             buf->data = second;
-            *mfa_ssid = first;
+            *mfa_ssid = strdup(first);
 
             if (temp) {
                 free(temp);
