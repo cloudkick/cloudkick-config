@@ -150,7 +150,7 @@ if env.get('HAVE_RPMBUILD'):
                 'PACKAGETYPE': 'rpm'}
   target_packages.append(env.Package(**packaging))
 
-  
+
 if env.get('HAVE_DPKG'):
   debname = pkgbase + "_" + env['debian_arch'] +".deb"
 
