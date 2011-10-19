@@ -172,7 +172,7 @@ static int ckc_transport_run(ckc_transport_t *t, ckc_buf_t *buf,
         }
 
         fprintf(stdout, "%s multi factor authentication is enabled."
-                        " Please enter your one time token bellow.\n",
+                        " Please enter your one time token below.\n",
                         mfa_backend);
         rv = ckc_prompt_password(&token, "Token");
 
