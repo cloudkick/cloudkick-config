@@ -9,6 +9,7 @@
 *.tar.bz2
 *.tar.gz
 *~
+.DS_Store
 .sconf_temp/
 .sconsign.dblite
 ._*
