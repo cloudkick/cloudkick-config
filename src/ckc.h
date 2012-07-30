@@ -23,7 +23,6 @@
 #include <ctype.h>
 
 #include <curl/curl.h>
-#include <curl/types.h>
 #include <curl/easy.h>
 
 void ckc_error_out(const char *msg);
